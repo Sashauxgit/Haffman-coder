@@ -12,10 +12,10 @@ class HaffNode{
     HaffNode *right;
     string wayCode;
 public:
-    char *symbol;
-    HaffNode(char* symbol = nullptr, string wayCode = "");
+    const char *symbol;
+    HaffNode(const char* symbol = nullptr, string wayCode = "");
     ~HaffNode();
-    HaffNode *extend(char *newSymbol);
+    HaffNode *extend(const char *newSymbol);
     void recount(string wayCode = "");
     HaffNode *findChar(char character);
     HaffNode& operator ++ (int);

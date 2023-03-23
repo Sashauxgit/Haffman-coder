@@ -6,7 +6,7 @@
 #include <vector>
 #include <queue>
 
-HaffCoder::HaffCoder(char *alphabet, InterData& interdata): alphabet(alphabet), interdata(interdata){ // Конструктор
+HaffCoder::HaffCoder(const char *alphabet, InterData& interdata): alphabet(alphabet), interdata(interdata){ // Конструктор
     getCodes(); // Генерация специальных кодов алфавита
     interdata << "Алфавит и сгенерированные специальные кода каждого символа:\n";
     for (int i = 0; i < strlen(alphabet); i++) interdata << alphabet[i] << " - " << codes[i] << "\n"; // Вывод алфавита
@@ -91,7 +91,7 @@ void HaffCoder::checkTree(){ // Проверка дерева Хаффмана �
 string HaffCoder::encode(char character){ // Функция кодирования символа
     interdata << "---------------------------------\n";
     interdata << "На вход кодировщику поступает символ '" << character << "'\n";
-    char *charPtr = strchr(alphabet, character); // Проверка наличия символа в алфавите
+    const char *charPtr = strchr(alphabet, character); // Проверка наличия символа в алфавите
     if (!charPtr) throw invalid_argument(string("Ошибка кодировщика: Символ: '") + character + string("' не распознан кодировщиком (не принадлежит его алфавиту)\n"));
     
     interdata << "Текущее дерево кодировщика:\n";

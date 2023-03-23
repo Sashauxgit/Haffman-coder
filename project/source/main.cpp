@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
 
     InterData interdata(p_finterdata); // Создание объекта вывода промежуточных данных
 
-    char *alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
+    const char *alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
     
     HaffCoder coder(alphabet, interdata); // Создание объекта-кодировщика
     string inMessage; // Входная строка

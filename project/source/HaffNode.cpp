@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-HaffNode::HaffNode(char* symbol, string wayCode): left(nullptr), right(nullptr), symbol(symbol), wayCode(wayCode){
+HaffNode::HaffNode(const char* symbol, string wayCode): left(nullptr), right(nullptr), symbol(symbol), wayCode(wayCode){
     if (symbol){
         if (*symbol == '\0') weight = 0; // Конструктор узла
         else weight = 1;
@@ -14,7 +14,7 @@ HaffNode::~HaffNode(){ // Деструктор узла и ветви в цел�
     if (this->right) delete this->right; // Очистка памяти под правое поддерево
 }
 
-HaffNode* HaffNode::extend(char *newSymbol){ // Росто дерева путем добавления новых узлов
+HaffNode* HaffNode::extend(const char *newSymbol){ // Росто дерева путем добавления новых узлов
     if (!this->symbol || *this->symbol != '\0') return nullptr; // Проверка соблюдения инварианта: роста дерева из особого узла
     this->left = new HaffNode(this->symbol, this->wayCode + "0"); // Создание правого сына - нового особого узла
     this->right = new HaffNode(newSymbol, this->wayCode + "1"); // Создание левого сына - узла с новым добавленным символом

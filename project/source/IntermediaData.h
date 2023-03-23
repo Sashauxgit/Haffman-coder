@@ -8,24 +8,22 @@
 class HaffCoder;
 class HaffNode;
 
+enum printMethod {original, spaces, verticalarc, horizontalarc, rightarcangle, leftarcangle};
+
 using namespace std;
+
+unsigned int LKRdetour(HaffNode *curElem, vector<HaffNode*>& nodeSequence);
 
 class InterData{
     ofstream *fout;
 public:
     InterData(ofstream *fout);
     template <class T>
-    friend InterData& operator<<(InterData& interdata, T obj){
-        if (interdata.fout) *interdata.fout << obj;
-        else cout << obj;
-        return interdata;
-    }
+    friend InterData& operator<<(InterData& interdata, T obj);
     void drowTree(HaffNode *root);
 };
 
-unsigned int LKRdetour(HaffNode *curElem, vector<HaffNode*>& nodeSequence);
-
-void specPrint(InterData& interdata, string str, bool isWrite);
-void specPrint(InterData& interdata, char c, bool isWrite);
+template <class T>
+InterData& operator<<(InterData& interdata, T obj);
 
 #endif
