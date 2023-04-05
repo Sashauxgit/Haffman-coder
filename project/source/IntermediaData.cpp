@@ -3,9 +3,19 @@
 #include <string>
 //#include <Windows.h>
 
-InterData::InterData(ofstream *fout): fout(fout){} // Конструктор
+InterData::InterData(demoMode mode, std::string fileName){
+    this->mode = mode;
+    if (this->mode == file) {
+        fout.open(fileName);
+        if (!fout) throw string("Ошибка открытия или создания файла ") + fileName;
+    }
+} // Конструктор
+
+InterData::~InterData() {fout.close();} // Деструктор
 
 void InterData::drowTree(HaffNode *root){ // Функция отрисовки дерева
+    if (mode == no) return;
+
     vector<HaffNode*> nodeSequence; // Последовательность ЛКП-обхода
     int height = LKRdetour(root, nodeSequence); // ЛКП-обход и измерение высоты
 
@@ -81,7 +91,18 @@ unsigned int LKRdetour(HaffNode *curElem, vector<HaffNode*>& nodeSequence){ //Л
 
 template <class T>
 InterData& operator<<(InterData& interdata, T obj) {
-    if (interdata.fout) *interdata.fout << obj;
-    else cout << obj;
+    switch (interdata.mode) {
+        case file:
+            interdata.fout << obj;
+            break;
+        case console:
+            cout << obj;
+            break;
+    }
+
     return interdata;
+}
+
+bool InterData::isWriteToFile() const {
+    return this->mode == file;
 }

@@ -1,86 +1,93 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <algorithm>
 
+#include "StreamType.h"
 #include "HaffCoder.h"
 
 using namespace std;
 
-int main(int argc, char* argv[]){
-    ifstream fin; // Поток входных данных
-    ofstream fout; // Поток выходных данных
-    ofstream finterdata; // Поток промежуточных данных
-    ofstream *p_finterdata = nullptr; // Адрес потока промежуточных данных
-
-    bool decoder; // Использовать ли декодировщик?
-
-    if (argc > 1 && argc < 6){
-        if (argv[1] == string("encoder")) decoder = false; // Определение режима работы
-        else if (argv[1] == string("decoder")) decoder = true;
-        else {
-            cout << "Нераспознанный режим работы программы: '" << argv[1] << "'\n";
-            return 1;
-        }
-
-        if (argc > 2){
-            fin.open(argv[2]); // Открытие файла для чтения исходных данных
-            if (!fin){
-                cout << "Ошибка открытия файла: " << argv[2] << endl;
-                return 1;
-            }
-
-            if (argc > 3) {
-                finterdata.open(argv[3]); // Открытие файла для записи промежуточных данных
-                if (!finterdata){
-                    cout << "Ошибка открытия файла: " << argv[3] << endl;
-                    return 1;
-                }
-                p_finterdata = &finterdata;
-
-                if (argc == 5) {
-                    fout.open(argv[4]); // Открытие файла для записи результата
-                    if (!fout){
-                        cout << "Ошибка открытия файла: " << argv[4] << endl;
-                        return 1;
-                    }
-                }
-            }
-        }
-    } else {
-        cout << "Некорректное число аргументов" << endl;
-        return 1;
-    }
-
-    InterData interdata(p_finterdata); // Создание объекта вывода промежуточных данных
-
-    const char *alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
+StreamType *in_analys(vector<string> &arguments) {
+    vector<string>::iterator it = find(arguments.begin(), arguments.end(), "-i");
+    if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--in");
+    if (it == arguments.end()) return new Console(arguments[0]);
+    it++;
+    if (it == arguments.end() || (*it)[0] == '-') throw invalid_argument("Обязательный аргумент опции '-i/--in' отсутствует");
     
-    HaffCoder coder(alphabet, interdata); // Создание объекта-кодировщика
-    string inMessage; // Входная строка
-    string outMessage; // Выходная результирующая строка
-    if (argc > 2) getline(fin, inMessage); // Чтение входных данных из потока
-    else {
-        if (decoder) cout << "Введите закодированную последовательность бит: ";
-        else cout << "Введите сообщение с символами из заданного алфавита: ";
-        getline(cin, inMessage); // Чтение входных данных с консоли
-    }
-    size_t len = inMessage.length();
-    interdata << "\nПромежуточные данные:\n";
-    try {
-        if (decoder) outMessage = coder.decode(inMessage); // Декодирование входной последовательности бит
-        else for (int i = 0; i < len; i++) outMessage += coder.encode(inMessage[i]); // Кодирование входного сообщения
-    } catch (invalid_argument ex){ cout << ex.what(); return 1;} // Обработка исключения кодировщика
+    if (arguments[1] == "encoder" || (find(arguments.begin(), arguments.end(), "-b") == arguments.end() 
+&& find(arguments.begin(), arguments.end(), "--binary") == arguments.end())) {
+        File *stream = new File(*it);
+        stream->r_open();
+        return stream;
+    } else return new BinFile(*it);
+}
 
-    if (argc == 5) fout << outMessage << "\n"; // Вывод результата в поток
-    else {
-        if (decoder) cout << "\nРезультат декодирования:\n";
-        else cout << "\nРезультат кодирования:\n";
-        cout << outMessage << "\n"; // Вывод результата на консоль
-    }
-    // Закрытие потоков
-    fin.close();
-    finterdata.close();
-    fout.close();
+StreamType *out_analys(vector<string> &arguments) {
+    vector<string>::iterator it = find(arguments.begin(), arguments.end(), "-o");
+    if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--out");
+    if (it == arguments.end()) return new Console(arguments[0]);
+    it++;
+    if (it == arguments.end() || (*it)[0] == '-') throw invalid_argument("Обязательный аргумент опции '-o/--out' отсутствует");
+    
+    if (arguments[1] == "decoder" || (find(arguments.begin(), arguments.end(), "-b") == arguments.end() 
+&& find(arguments.begin(), arguments.end(), "--binary") == arguments.end())) {
+        File *stream = new File(*it);
+        stream->w_open();
+        return stream;
+    } else return new BinFile(*it);
+}
+
+InterData *demo_analys(vector<string> &arguments) {
+    vector<string>::iterator it = find(arguments.begin(), arguments.end(), "-d");
+    if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--demo");
+    if (it == arguments.end()) return new InterData(no);
+    it++;
+    if (it == arguments.end() || (*it)[0] == '-') return new InterData(console);
+    
+    return new InterData(file, *it);
+}
+
+int main(int argc, char* argv[]){
+    try {
+        if (argc < 2) throw invalid_argument("Отсутствует режим работы программы: 'encoder/decoder'");
+        vector<string> CLI = vector<string>(argc - 1);
+        for (int i = 1; i < argc; i++) CLI[i - 1] = argv[i];
+        if (CLI[0] != "encoder" && CLI[0] != "decoder") throw invalid_argument("Нераспознанный режим работы программы: " + CLI[0]);
+        
+        StreamType *inStream = in_analys(CLI);
+        StreamType *outStream = out_analys(CLI);
+        InterData *interdata = demo_analys(CLI);
+
+        const char *alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
+        
+        HaffCoder coder = HaffCoder(alphabet, *interdata); // Создание объекта-кодировщика
+        string inMessage = inStream->read(); // Входная строка
+        string outMessage; // Выходная результирующая строка
+        
+        *interdata << "\nПромежуточные данные:\n";
+
+        if (CLI[0] == "decoder") outMessage = coder.decode(inMessage); // Декодирование входной последовательности бит
+        else 
+            for (string::iterator symbol_i = inMessage.begin(); symbol_i != inMessage.end(); symbol_i++) 
+                outMessage += coder.encode(*symbol_i); // Кодирование входного сообщения
+        
+        outStream->write(outMessage);
+        if (interdata->isWriteToFile()) {
+            if (CLI[0] == "decoder") *interdata << "\nРезультат декодирования:\n";
+            else *interdata << "\nРезультат кодирования:\n";
+            *interdata << outMessage;
+        }
+
+        delete inStream;
+        delete outStream;
+        delete interdata;
+    } catch (invalid_argument ex){
+        cout << ex.what() << endl;
+    } catch (string message) {
+        cout << message << endl;
+    } // Обработка исключения кодировщика и всей программы
     
     return 0;
 }
