@@ -12,6 +12,7 @@ public:
     virtual ~StreamType() = 0;
     virtual std::string read() = 0;
     virtual void write(std::string result) = 0;
+    virtual bool isBinary() = 0;
 };
 
 class Console: public StreamType {
@@ -21,6 +22,7 @@ public:
     Console(std::string arg);
     std::string read();
     void write(std::string result);
+    bool isBinary();
 };
 
 class File: public StreamType {
@@ -35,6 +37,7 @@ public:
     void w_open();
     std::string read();
     void write(std::string result);
+    bool isBinary();
 };
 
 class BinFile: public StreamType {
@@ -46,6 +49,7 @@ public:
     ~BinFile() = default;
     std::string read();
     void write(std::string result);
+    bool isBinary();
 };
 
 #endif

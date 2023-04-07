@@ -65,3 +65,15 @@ void File::w_open() {
 }
 
 StreamType::~StreamType(){}
+
+bool Console::isBinary() {
+    return false;
+}
+
+bool File::isBinary() {
+    return false;
+}
+
+bool BinFile::isBinary() {
+    return true;
+}
