@@ -9,6 +9,28 @@
 
 using namespace std;
 
+wchar_t *readAlphabet() {
+    wifstream alphabetFile("alphabet");
+    if (!alphabetFile) return nullptr;
+
+    wchar_t c;
+    size_t symbolCount = 0;
+    while (!alphabetFile.eof()) {
+        alphabetFile.get(c);
+        symbolCount++;
+    }
+    alphabetFile.close();
+
+    wchar_t *alphabet = new wchar_t[symbolCount];
+
+    alphabetFile.open("alphabet");
+    for (int i = 0; i < symbolCount - 1; i++) alphabetFile.get(alphabet[i]);
+    alphabet[symbolCount - 1] = '\0';
+    alphabetFile.close();
+
+    return alphabet;
+}
+
 vector<string>::iterator binary_analys(vector<string> &arguments) {
     vector<string>::iterator it = find(arguments.begin(), arguments.end(), "-b");
     if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--binary");
@@ -20,7 +42,7 @@ StreamType *in_analys(vector<string> &arguments) {
     if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--in");
     if (it == arguments.end()) return new Console(arguments[0]);
     arguments.erase(it);
-    if (it == arguments.end() || (*it)[0] == '-') throw invalid_argument("Обязательный аргумент опции '-i/--in' отсутствует");
+    if (it == arguments.end() || (*it)[0] == '-') throw string("Обязательный аргумент опции '-i/--in' отсутствует");
     
     StreamType* st;
     if (arguments[0] == "encoder" || (binary_analys(arguments) == arguments.end())) {
@@ -38,7 +60,7 @@ StreamType *out_analys(vector<string> &arguments) {
     if (it == arguments.end()) it = find(arguments.begin(), arguments.end(), "--out");
     if (it == arguments.end()) return new Console(arguments[0]);
     arguments.erase(it);
-    if (it == arguments.end() || (*it)[0] == '-') throw invalid_argument("Обязательный аргумент опции '-o/--out' отсутствует");
+    if (it == arguments.end() || (*it)[0] == '-') throw string("Обязательный аргумент опции '-o/--out' отсутствует");
 
     StreamType* st;
     if (arguments[0] == "decoder" || (binary_analys(arguments) == arguments.end())) {
@@ -93,13 +115,13 @@ string instruction(char *programName) {
 
 int main(int argc, char* argv[]){
     try {
-        if (argc < 2) throw invalid_argument("Отсутствует режим работы программы: 'encoder/decoder'");
+        if (argc < 2) throw string("Отсутствует режим работы программы: 'encoder/decoder'");
 
         if (argc == 2 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")) throw instruction(argv[0]);
 
         vector<string> CLI = vector<string>(argc - 1);
         for (int i = 1; i < argc; i++) CLI[i - 1] = argv[i];
-        if (CLI[0] != "encoder" && CLI[0] != "decoder") throw invalid_argument("Не удалось распознать режим работы программы: " + CLI[0]);
+        if (CLI[0] != "encoder" && CLI[0] != "decoder") throw string("Не удалось распознать режим работы программы: ") + CLI[0];
         
         StreamType *inStream = in_analys(CLI);
         StreamType *outStream = out_analys(CLI);
@@ -108,40 +130,43 @@ int main(int argc, char* argv[]){
         vector<string>::iterator b_it = binary_analys(CLI);
         if (b_it != CLI.end()) {
             if (!inStream->isBinary() && !outStream->isBinary())
-                throw invalid_argument("Лишняя опция: " + *b_it + ". Отсутствует аргумент для работы с бинарным файлом");
+                throw string("Лишняя опция: " + *b_it + ". Отсутствует аргумент для работы с бинарным файлом");
             CLI.erase(b_it);
         }
         CLI.erase(CLI.begin());
-        if (CLI.size() > 0) throw invalid_argument("Не удалось распознать опцию или аргумент программы: " + CLI[0]);
+        if (CLI.size() > 0) throw string("Не удалось распознать опцию или аргумент программы: ") + CLI[0];
 
-        const char *alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
+        const wchar_t *alphabet = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:() "; // Алфавит
+        const wchar_t *fileAlphabet = readAlphabet();
+        if (fileAlphabet) alphabet = fileAlphabet;
         
         HaffCoder coder = HaffCoder(alphabet, *interdata); // Создание объекта-кодировщика
-        string inMessage = inStream->read(); // Входная строка
-        string outMessage; // Выходная результирующая строка
+        wstring inMessage = inStream->read(); // Входная строка
+        wstring outMessage; // Выходная результирующая строка
         
-        *interdata << "\nПромежуточные данные:\n";
+        *interdata << L"\nПромежуточные данные:\n";
 
         if (CLI[0] == "decoder") outMessage = coder.decode(inMessage); // Декодирование входной последовательности бит
         else 
-            for (string::iterator symbol_i = inMessage.begin(); symbol_i != inMessage.end(); symbol_i++) 
+            for (wstring::iterator symbol_i = inMessage.begin(); symbol_i != inMessage.end(); symbol_i++) 
                 outMessage += coder.encode(*symbol_i); // Кодирование входного сообщения
         
         outStream->write(outMessage);
+        wcout << L"\n" << coder;
         if (interdata->isWriteToFile()) {
             if (CLI[0] == "decoder") *interdata << "\nРезультат декодирования:\n";
-            else *interdata << "\nРезультат кодирования:\n";
-            *interdata << outMessage;
+            else *interdata << L"\nРезультат кодирования:\n";
+            *interdata << outMessage << L"\n\n";
+            *interdata << coder;
         }
 
         delete inStream;
         delete outStream;
         delete interdata;
-    } catch (invalid_argument ex){
-        cout << ex.what() << "\nДля вызова инструкции работы с программой используйте команду: '";
-        cout << argv[0] << " -h' или '" << argv[0] << " --help'" << endl;
-    } catch (string message) {
-        cout << message << endl;
+        delete[] fileAlphabet;
+    } catch (wstring message){
+        wcout << message << L"\nДля вызова инструкции работы с программой используйте команду: '";
+        wcout << argv[0] << L" -h' или '" << argv[0] << L" --help'" << endl;
     } // Обработка исключения кодировщика и всей программы
     
     return 0;

@@ -11,11 +11,11 @@ public:
     Binfstream(std::string fileName);
     ~Binfstream() = default;
     operator bool() const;
-    friend Binfstream& operator<<(Binfstream &b_fout, const std::string &bits);
-    friend Binfstream& operator>>(Binfstream &b_fin, std::string &bits);
+    friend Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits);
+    friend Binfstream& operator>>(Binfstream &b_fin, std::wstring &bits);
 };
 
-Binfstream& operator<<(Binfstream &b_fout, const std::string &bits);
-Binfstream& operator>>(Binfstream &b_fin, std::string &bits);
+Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits);
+Binfstream& operator>>(Binfstream &b_fin, std::wstring &bits);
 
 #endif

@@ -35,14 +35,14 @@ void InterData::drowTree(HaffNode *root){ // Функция отрисовки �
             bool onArc = false; // Рисуем ли горизонтальную дугу на слое
             for (int i = 0; i < nodeSequence.size(); i++){ // Цикл по всем узлам дерева
                 bool isNode_on_level = (level == nodeSequence[i]->getCode().length() - root->getCode().length() + 1); // Определение принадлежности узла к текущему уровню
-                string nodeText = "(" + to_string(nodeSequence[i]->getWeight()); // собираем строковое представление узла в формате веса и символа
+                wstring nodeText = L"(" + to_wstring(nodeSequence[i]->getWeight()); // собираем строковое представление узла в формате веса и символа
                 if (nodeSequence[i]->symbol) {
-                    nodeText += '[';
-                    if (*nodeSequence[i]->symbol == '\0') nodeText += "\\0"; 
+                    nodeText += L'[';
+                    if (*nodeSequence[i]->symbol == L'\0') nodeText += L"\\0"; 
                     else nodeText += *nodeSequence[i]->symbol;
-                    nodeText += ']';
+                    nodeText += L']';
                 }
-                nodeText += ')';
+                nodeText += L')';
 
                 printMethod renderMode; // Режим отрисовки узла
                 if (layer == 0) renderMode = selection_0[(int)onArc][(int)isNode_on_level];
@@ -56,27 +56,27 @@ void InterData::drowTree(HaffNode *root){ // Функция отрисовки �
                         *this << nodeText; // Печать узла
                         break;
                     case spaces:
-                        for (int j = 0; j < len; j++) *this << ' '; // Печать пробелов в количестве длинны строки узла
+                        for (int j = 0; j < len; j++) *this << L' '; // Печать пробелов в количестве длинны строки узла
                         break;
                     case verticalarc:
-                        for (int j = 0; j < len / 2 - 1; j++) *this << ' ';
-                        *this << "||"; // Печать вертикальной дуги посередине узла
-                        for (int j = len / 2 + 1; j < len; j++) *this << ' ';
+                        for (int j = 0; j < len / 2 - 1; j++) *this << L' ';
+                        *this << L"||"; // Печать вертикальной дуги посередине узла
+                        for (int j = len / 2 + 1; j < len; j++) *this << L' ';
                         break;
                     case horizontalarc:
-                        for (int j = 0; j < len; j++) *this << '-'; // Печать символов '-' в количестве длинны строки узла (горизонтальная дуга)
+                        for (int j = 0; j < len; j++) *this << L'-'; // Печать символов '-' в количестве длинны строки узла (горизонтальная дуга)
                         break;
                     case rightarcangle:
-                        for (int j = 0; j < len / 2 + 1; j++) *this << '-'; // Конец горизонтальной дуги над вертикальной (правый сын)
-                        for (int j = len / 2 + 1; j < len; j++) *this << ' ';
+                        for (int j = 0; j < len / 2 + 1; j++) *this << L'-'; // Конец горизонтальной дуги над вертикальной (правый сын)
+                        for (int j = len / 2 + 1; j < len; j++) *this << L' ';
                         break;
                     case leftarcangle:
-                        for (int j = 0; j < len / 2 - 1; j++) *this << ' ';
-                        for (int j = len / 2 - 1; j < len; j++) *this << '-'; // Начало горизонтальной дуги над вертикальной (левый сын)
+                        for (int j = 0; j < len / 2 - 1; j++) *this << L' ';
+                        for (int j = len / 2 - 1; j < len; j++) *this << L'-'; // Начало горизонтальной дуги над вертикальной (левый сын)
                         break;
                 }
             }
-            *this << "\n";
+            *this << L"\n";
         }
     }
 }
@@ -89,14 +89,13 @@ unsigned int LKRdetour(HaffNode *curElem, vector<HaffNode*>& nodeSequence){ //Л
     return (H1 > H2 ? H1 : H2) + 1; // Возврат большей из высот с добавлением едицицы - высоты текущего уровня 
 }
 
-template <class T>
-InterData& operator<<(InterData& interdata, T obj) {
+InterData& operator<<(InterData& interdata, HaffCoder& coder) {
     switch (interdata.mode) {
         case file:
-            interdata.fout << obj;
+            interdata.fout << coder;
             break;
         case console:
-            cout << obj;
+            wcout << coder;
             break;
     }
 

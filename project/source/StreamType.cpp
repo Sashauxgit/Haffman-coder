@@ -16,42 +16,50 @@ File::~File() {
 
 BinFile::BinFile(string fileName):fileName(fileName), binary(Binfstream(fileName)){}
 
-std::string Console::read(){
-    string message;
-    if (decoder) cout << "Введите закодированную последовательность бит: ";
-    else cout << "Введите сообщение с символами из заданного алфавита: ";
-    getline(cin, message); // Чтение входных данных с консоли
+std::wstring Console::read(){
+    wstring message;
+    if (decoder) wcout << L"Введите закодированную последовательность бит: ";
+    else wcout << L"Введите сообщение с символами из заданного алфавита: ";
+    getline(wcin, message); // Чтение входных данных с консоли
     return message;
 }
 
-void Console::write(string result){
-    if (decoder) cout << "\nРезультат декодирования:\n";
-    else cout << "\nРезультат кодирования:\n";
-    cout << result << "\n"; // Вывод результата на консоль
+void Console::write(wstring result){
+    if (decoder) wcout << L"\nРезультат декодирования:\n";
+    else wcout << L"\nРезультат кодирования:\n";
+    wcout << result << L"\n"; // Вывод результата на консоль
 }
 
-std::string File::read(){
-    string message;
-    getline(fin, message); // Чтение входных данных с потока
-    cout << "\nИз файла: " << fileName << " считано входное сообщение: " << message << "\n";
+std::wstring File::read(){
+    wstring message;
+    getline(fin, message, (wchar_t)EOF); // Чтение входных данных с потока
+    wstring::iterator lastChar = message.end() - 1;
+    if (*lastChar == L'\n') message.erase(lastChar);
+    wcout << L"\nИз файла: "; 
+    cout << fileName; 
+    wcout << L" считано входное сообщение: " << message << L"\n";
     return message;
 }
 
-void File::write(string result){
-    fout << result << "\n"; // Вывод результата в поток
-    cout << "\nРезультат записан в файл: " << fileName << "\n";
+void File::write(wstring result){
+    fout << result << L"\n"; // Вывод результата в поток
+    wcout << L"\nРезультат записан в файл: ";
+    cout << fileName << "\n"; 
 }
 
-std::string BinFile::read(){
-    string message;
+std::wstring BinFile::read(){
+    wstring message;
     binary >> message; // Чтение входных данных из бинарника
-    cout << "\nИз бинарного файла: " << fileName << " считана последовательность бит сжатого сообщения: " << message << "\n";
+    wcout << L"\nИз бинарного файла: ";
+    cout << fileName;
+    wcout << L" считана последовательность бит сжатого сообщения: " << message << L"\n";
     return message;
 }
 
-void BinFile::write(string result){
+void BinFile::write(wstring result){
     binary << result; // Вывод результата в бинарник
-    cout << "\nСжатый результат записан в бинарный файл: " << fileName << "\n";
+    wcout << L"\nСжатый результат записан в бинарный файл: ";
+    cout << fileName << "\n";
 }
 
 void File::r_open() {

@@ -10,8 +10,8 @@
 class StreamType {
 public:
     virtual ~StreamType() = 0;
-    virtual std::string read() = 0;
-    virtual void write(std::string result) = 0;
+    virtual std::wstring read() = 0;
+    virtual void write(std::wstring result) = 0;
     virtual bool isBinary() = 0;
 };
 
@@ -20,23 +20,23 @@ private:
     bool decoder;
 public:
     Console(std::string arg);
-    std::string read();
-    void write(std::string result);
+    std::wstring read();
+    void write(std::wstring result);
     bool isBinary();
 };
 
 class File: public StreamType {
 private:
-    std::ifstream fin;
-    std::ofstream fout;
+    std::wifstream fin;
+    std::wofstream fout;
     std::string fileName;
 public:
     File(std::string fileName);
     ~File();
     void r_open();
     void w_open();
-    std::string read();
-    void write(std::string result);
+    std::wstring read();
+    void write(std::wstring result);
     bool isBinary();
 };
 
@@ -47,8 +47,8 @@ private:
 public:
     BinFile(std::string fileName);
     ~BinFile() = default;
-    std::string read();
-    void write(std::string result);
+    std::wstring read();
+    void write(std::wstring result);
     bool isBinary();
 };
 

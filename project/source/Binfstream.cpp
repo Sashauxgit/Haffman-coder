@@ -22,7 +22,7 @@ Binfstream::operator bool() const{
     return boolVal;
 }
 
-Binfstream& operator<<(Binfstream &b_fout, const std::string &bits){
+Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits){
     FILE *file = fopen(b_fout.ch_fileName, "wb");
     if (!file) throw string("Ошибка открытия или создания файла ") + b_fout.str_fileName;
 
@@ -38,7 +38,7 @@ Binfstream& operator<<(Binfstream &b_fout, const std::string &bits){
 
     for (int i = 0; i < buffer_size; i++) {
         try {
-            if (i == buffer_size - 1) buffer[i] = (byte)stoi(bits.substr(8 * i) + string(addition, '0'), nullptr, 2);
+            if (i == buffer_size - 1) buffer[i] = (byte)stoi(bits.substr(8 * i) + wstring(addition, L'0'), nullptr, 2);
             else buffer[i] = (byte)stoi(bits.substr(8 * i, 8), nullptr, 2);
         } catch (invalid_argument e) {
             throw string("При выводе в бинарный файл в строке бит встретились некорректные символы");
@@ -53,7 +53,7 @@ Binfstream& operator<<(Binfstream &b_fout, const std::string &bits){
     return b_fout;
 }
 
-Binfstream& operator>>(Binfstream& b_fin, std::string &bits){
+Binfstream& operator>>(Binfstream& b_fin, std::wstring &bits){
     FILE *file = fopen(b_fin.ch_fileName, "rb");
     if (!file) throw string("Ошибка чтения файла ") + b_fin.str_fileName + string(" или файл не существует");
     
@@ -70,10 +70,14 @@ Binfstream& operator>>(Binfstream& b_fin, std::string &bits){
 
     byte buffer;
     for (int i = 0; i < file_size - 3; i++) {
+        auto to_wstring = [] (string str) {
+            return wstring(str.begin(), str.end());
+        };
+
         fread(&buffer, sizeof(byte), 1, file);
         bitset<8> bs(buffer);
-        if (i == file_size - 4) bits += bs.to_string().substr(0, 8 - addition);
-        else bits += bs.to_string();
+        if (i == file_size - 4) bits += to_wstring(bs.to_string().substr(0, 8 - addition));
+        else bits += to_wstring(bs.to_string());
     }
 
     fclose(file);

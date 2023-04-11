@@ -10,29 +10,29 @@ class HaffNode{
     unsigned int weight;
     HaffNode *left;
     HaffNode *right;
-    string wayCode;
+    wstring wayCode;
 public:
-    const char *symbol;
-    HaffNode(const char* symbol = nullptr, string wayCode = "");
+    const wchar_t *symbol;
+    HaffNode(const wchar_t* symbol = nullptr, wstring wayCode = L"");
     ~HaffNode();
-    HaffNode *extend(const char *newSymbol);
-    void recount(string wayCode = "");
-    HaffNode *findChar(char character);
+    HaffNode *extend(const wchar_t *newSymbol);
+    void recount(wstring wayCode = L"");
+    HaffNode *findChar(wchar_t character);
     HaffNode& operator ++ (int);
     unsigned int getWeight() const;
     HaffNode *getLeft();
     HaffNode *getRight();
-    string getCode();
+    wstring getCode();
     friend void swapNode(HaffNode *node_1, HaffNode *node_2);
-    friend HaffNode *paveWay(HaffNode *curElem, string code);
-    friend HaffNode *paveWay(HaffNode *curElem, char code);
+    friend HaffNode *paveWay(HaffNode *curElem, wstring code);
+    friend HaffNode *paveWay(HaffNode *curElem, wchar_t code);
 };
 
 bool operator > (const HaffNode& obj1, const HaffNode& obj2);
 bool operator < (const HaffNode& obj1, const HaffNode& obj2);
 
 void swapNode(HaffNode *node_1, HaffNode *node_2);
-HaffNode *paveWay(HaffNode *curElem, string code);
-HaffNode *paveWay(HaffNode *curElem, char code);
+HaffNode *paveWay(HaffNode *curElem, wstring code);
+HaffNode *paveWay(HaffNode *curElem, wchar_t code);
 
 #endif
