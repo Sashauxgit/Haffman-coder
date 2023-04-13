@@ -136,7 +136,7 @@ wstring HaffCoder::encode(wchar_t character){ // Функция кодирова
 wstring HaffCoder::decode(wstring bitMessage){ // Функция декодирования сообщения
     wstring result; // Создание пустого результата
 
-    interdata << "Начало работы декодировщика: на вход декодеру подается последовательность бит:\n";
+    interdata << L"Начало работы декодировщика: на вход декодеру подается последовательность бит:\n";
     interdata << bitMessage << "\n";
 
     HaffNode *specTree = new HaffNode;

@@ -19,7 +19,7 @@ class InterData{
     demoMode mode;
     wofstream fout;
 public:
-    InterData(demoMode mode, std::string fileName = std::string());
+    InterData(demoMode mode, std::wstring fileName = std::wstring());
     ~InterData();
     template <class T>
     friend InterData& operator<<(InterData& interdata, T obj);

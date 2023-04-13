@@ -5,10 +5,10 @@
 
 class Binfstream {
 private:
-    std::string str_fileName;
-    const char *ch_fileName;
+    std::wstring str_fileName;
+    const wchar_t *ch_fileName;
 public:
-    Binfstream(std::string fileName);
+    Binfstream(std::wstring fileName);
     ~Binfstream() = default;
     operator bool() const;
     friend Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits);

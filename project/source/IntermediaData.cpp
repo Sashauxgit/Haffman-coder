@@ -1,13 +1,14 @@
 #include "IntermediaData.h"
 #include "HaffCoder.h"
 #include <string>
-//#include <Windows.h>
 
-InterData::InterData(demoMode mode, std::string fileName){
+InterData::InterData(demoMode mode, std::wstring fileName){
     this->mode = mode;
     if (this->mode == file) {
-        fout.open(fileName);
-        if (!fout) throw string("Ошибка открытия или создания файла ") + fileName;
+        fout.open([] (wstring str) {
+        return string(str.begin(), str.end());
+    }(fileName));
+        if (!fout) throw wstring(L"Ошибка открытия или создания файла ") + fileName;
     }
 } // Конструктор
 

@@ -2,19 +2,19 @@
 
 using namespace std;
 
-Console::Console(std::string arg){
-    if (arg == string("decoder")) decoder = true;
+Console::Console(std::wstring arg){
+    if (arg == wstring(L"decoder")) decoder = true;
     else decoder = false;
 }
 
-File::File(std::string fileName):fileName(fileName){}
+File::File(std::wstring fileName):fileName(fileName){}
 
 File::~File() {
     fin.close();
     fout.close();
 }
 
-BinFile::BinFile(string fileName):fileName(fileName), binary(Binfstream(fileName)){}
+BinFile::BinFile(wstring fileName):fileName(fileName), binary(Binfstream(fileName)){}
 
 std::wstring Console::read(){
     wstring message;
@@ -35,41 +35,39 @@ std::wstring File::read(){
     getline(fin, message, (wchar_t)EOF); // Чтение входных данных с потока
     wstring::iterator lastChar = message.end() - 1;
     if (*lastChar == L'\n') message.erase(lastChar);
-    wcout << L"\nИз файла: "; 
-    cout << fileName; 
-    wcout << L" считано входное сообщение: " << message << L"\n";
+    wcout << L"\nИз файла: " << fileName << L" считано входное сообщение: " << message << L"\n";
     return message;
 }
 
 void File::write(wstring result){
     fout << result << L"\n"; // Вывод результата в поток
-    wcout << L"\nРезультат записан в файл: ";
-    cout << fileName << "\n"; 
+    wcout << L"\nРезультат записан в файл: " << fileName << L"\n"; 
 }
 
 std::wstring BinFile::read(){
     wstring message;
     binary >> message; // Чтение входных данных из бинарника
-    wcout << L"\nИз бинарного файла: ";
-    cout << fileName;
-    wcout << L" считана последовательность бит сжатого сообщения: " << message << L"\n";
+    wcout << L"\nИз бинарного файла: " << fileName << L" считана последовательность бит сжатого сообщения: " << message << L"\n";
     return message;
 }
 
 void BinFile::write(wstring result){
     binary << result; // Вывод результата в бинарник
-    wcout << L"\nСжатый результат записан в бинарный файл: ";
-    cout << fileName << "\n";
+    wcout << L"\nСжатый результат записан в бинарный файл: " << fileName << L"\n";
 }
 
 void File::r_open() {
-    fin.open(fileName);
-    if (!fin) throw string("Ошибка чтения файла ") + fileName + string(" или файл не существует");
+    fin.open([] (wstring str) {
+        return string(str.begin(), str.end());
+    }(fileName));
+    if (!fin) throw wstring(L"Ошибка чтения файла ") + fileName + wstring(L" или файл не существует");
 }
 
 void File::w_open() {
-    fout.open(fileName);
-    if (!fout) throw string("Ошибка открытия или создания файла ") + fileName;
+    fout.open([] (wstring str) {
+        return string(str.begin(), str.end());
+    }(fileName));
+    if (!fout) throw wstring(L"Ошибка открытия или создания файла ") + fileName;
 }
 
 StreamType::~StreamType(){}
