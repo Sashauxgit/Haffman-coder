@@ -3,9 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <cstdio>
-#include <cstdlib>
-
 #include <string>
 #include <bitset>
 
@@ -13,18 +10,23 @@
 
 using namespace std;
 
-Binfstream::Binfstream(wstring fileName): str_fileName(fileName), ch_fileName(const_cast<const wchar_t*>(str_fileName.c_str())){}
+FILE *wfopen(wstring wfileName, const char *mode) {
+    string fileName = string(wfileName.begin(), wfileName.end());
+    return fopen(fileName.c_str(), mode);
+}
+
+Binfstream::Binfstream(wstring fileName): fileName(fileName){}
 
 Binfstream::operator bool() const{
-    FILE *file = _wfopen(ch_fileName, L"rb");
+    FILE *file = wfopen(fileName, "rb");
     bool boolVal = (bool)file;
     fclose(file);
     return boolVal;
 }
 
 Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits){
-    FILE *file = _wfopen(b_fout.ch_fileName, L"wb");
-    if (!file) throw wstring(L"Ошибка открытия или создания файла ") + b_fout.str_fileName;
+    FILE *file = wfopen(b_fout.fileName, "wb");
+    if (!file) throw wstring(L"Ошибка открытия или создания файла ") + b_fout.fileName;
 
     byte addition = bits.size() % 8 == 0 ? 0 : 8 - (bits.size() % 8);
 
@@ -54,17 +56,24 @@ Binfstream& operator<<(Binfstream &b_fout, const std::wstring &bits){
 }
 
 Binfstream& operator>>(Binfstream& b_fin, std::wstring &bits){
-    FILE *file = _wfopen(b_fin.ch_fileName, L"rb");
-    if (!file) throw wstring(L"Ошибка чтения файла ") + b_fin.str_fileName + wstring(L" или файл не существует");
+    FILE *file = wfopen(b_fin.fileName, "rb");
+    if (!file) throw wstring(L"Ошибка чтения файла ") + b_fin.fileName + wstring(L" или файл не существует");
     
     fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
-    if (file_size < 3) throw wstring(L"Некорректный формат файла ") + b_fin.str_fileName;
+    if (file_size < 3) {
+        fclose(file);
+        throw wstring(L"Некорректный формат файла ") + b_fin.fileName;
+    }
 
     fseek(file, 0, SEEK_SET);
     byte *head = new byte[3];
     fread(head, sizeof(byte), 3, file);
-    if (head[0] != 'H' || head[1] != 'C' || head[2] > 7) throw wstring(L"Некорректный формат файла ") + b_fin.str_fileName;
+    if (head[0] != 'H' || head[1] != 'C' || head[2] > 7) {
+        fclose(file);
+        throw wstring(L"Некорректный формат файла ") + b_fin.fileName;
+    }
+
     byte addition = head[2];
     delete head;
 

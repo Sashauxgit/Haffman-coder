@@ -4,6 +4,13 @@
 #include <vector>
 #include <algorithm>
 
+#ifndef __linux__ // Если не Linux
+#include <Windows.h> // windows
+#else
+#include <clocale> // linux
+#endif
+
+
 #include "StreamType.h"
 #include "HaffCoder.h"
 
@@ -89,7 +96,7 @@ InterData *demo_analys(vector<wstring> &arguments) {
 wstring instruction(wstring programName) {
     wstring s = L"Инструкция работы с программой:\n";
     s += L"\nИсполняемый файл программы для запуска: " + programName;
-    s += L"Программа запускается с аргументами командной строки:\n";
+    s += L"\nПрограмма запускается с аргументами командной строки:\n";
     s += L"\tПервый главный аргумент - режим работы программы:\n";
     s += L"\t\t'encoder' - исользование кодировщика для кодирования сообщения;\n";
     s += L"\t\t'decoder' - исользование кодировщика для декодирования сообщения.\n\n";
@@ -117,7 +124,15 @@ wstring charStr_to_wstring(const char *c_str) {
 }
 
 int main(int argc, const char* argv[]){
-    setlocale(0, "");
+#ifndef __linux__ // Если не Linux
+    // Для Windows
+    uint16_t prevCP = GetConsoleCP(); //Сохраняем текущую кодировку терминала
+    SetConsoleCP(65001);              //Ставим нужную
+    SetConsoleOutputCP(65001);        //нам кодировку UTF-8
+#else
+    // Для Linux
+    locale::global(locale("ru_RU.UTF-8"));  //Устанавливаем лоакль системы Linux
+#endif
     try {
         if (argc < 2) throw wstring(L"Отсутствует режим работы программы: 'encoder/decoder'");
 
@@ -127,6 +142,8 @@ int main(int argc, const char* argv[]){
         for (int i = 1; i < argc; i++) CLI[i - 1] = charStr_to_wstring(argv[i]);
         if (CLI[0] != L"encoder" && CLI[0] != L"decoder") throw wstring(L"Не удалось распознать режим работы программы: ") + CLI[0];
         
+        bool decoder = CLI[0] == L"decoder";
+
         StreamType *inStream = in_analys(CLI);
         StreamType *outStream = out_analys(CLI);
         InterData *interdata = demo_analys(CLI);
@@ -146,11 +163,12 @@ int main(int argc, const char* argv[]){
         
         HaffCoder coder = HaffCoder(alphabet, *interdata); // Создание объекта-кодировщика
         wstring inMessage = inStream->read(); // Входная строка
+        if (inMessage.size() == 0) throw wstring(L"Нечего кодировать/декодировать (Пустое входное сообщение)");
         wstring outMessage; // Выходная результирующая строка
         
         *interdata << L"\nПромежуточные данные:\n";
 
-        if (CLI[0] == L"decoder") outMessage = coder.decode(inMessage); // Декодирование входной последовательности бит
+        if (decoder) outMessage = coder.decode(inMessage); // Декодирование входной последовательности бит
         else 
             for (wstring::iterator symbol_i = inMessage.begin(); symbol_i != inMessage.end(); symbol_i++) 
                 outMessage += coder.encode(*symbol_i); // Кодирование входного сообщения
@@ -158,12 +176,12 @@ int main(int argc, const char* argv[]){
         outStream->write(outMessage);
         wcout << L"\n" << coder;
         if (interdata->isWriteToFile()) {
-            if (CLI[0] == L"decoder") *interdata << L"\nРезультат декодирования:\n";
+            if (decoder) *interdata << L"\nРезультат декодирования:\n";
             else *interdata << L"\nРезультат кодирования:\n";
             *interdata << outMessage << L"\n\n";
             *interdata << coder;
         }
-
+        
         delete inStream;
         delete outStream;
         delete interdata;
@@ -171,7 +189,16 @@ int main(int argc, const char* argv[]){
     } catch (wstring message){
         wcout << message << L"\nДля вызова инструкции работы с программой используйте команду: '";
         wcout << charStr_to_wstring(argv[0]) << L" -h' или '" << charStr_to_wstring(argv[0]) << L" --help'" << endl;
+    }  catch (const wchar_t *message){
+        wcout << message << L"\nДля вызова инструкции работы с программой используйте команду: '";
+        wcout << charStr_to_wstring(argv[0]) << L" -h' или '" << charStr_to_wstring(argv[0]) << L" --help'" << endl;
     } // Обработка исключения кодировщика и всей программы
     
+#ifndef __linux__ // Если не Linux
+    // Для Windows
+    SetConsoleCP(prevCP);           //Возвращаем сохраненную
+    SetConsoleOutputCP(prevCP);     //кодировку терминала
+#endif
+
     return 0;
 }

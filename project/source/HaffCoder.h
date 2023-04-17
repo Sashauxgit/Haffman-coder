@@ -16,7 +16,7 @@ class HaffCoder {
     int processedSymbolCount = 0;
     int totalCodeLength = 0;
     vector<int> symbolFrequency;
-    int minSymbolCode = INT_MAX;
+    int minSymbolCode;
     int maxSymbolCode = 0;
 
     void getCodes();
@@ -50,7 +50,7 @@ T& operator << (T& stream, const HaffCoder& coder) {
             stream << L"|'" << coder.alphabet[i] << L"' - " << coder.symbolFrequency[i] << L";\n";
     
     wchar_t buf[100];
-    swprintf(buf, L"|\n|Средняя длина кода: %.2f\n", ((float)coder.totalCodeLength / (float)coder.processedSymbolCount));
+    swprintf(buf, 100, L"|\n|Средняя длина кода: %.2f\n", ((float)coder.totalCodeLength / (float)coder.processedSymbolCount));
     stream << buf;
     stream << L"|Максимальная длина кода: " << coder.maxSymbolCode << L"\n";
     stream << L"|Минимальная длина кода: " << coder.minSymbolCode << L"\n";

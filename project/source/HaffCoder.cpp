@@ -5,6 +5,7 @@
 #include <cstring>
 #include <vector>
 #include <queue>
+#include <bitset>
 
 HaffCoder::HaffCoder(const wchar_t *alphabet, InterData& interdata): alphabet(alphabet), interdata(interdata){ // Конструктор
     getCodes(); // Генерация специальных кодов алфавита
@@ -23,10 +24,15 @@ HaffCoder::~HaffCoder(){ // Деструктор кодировщика
 }
 
 void HaffCoder::getCodes(){ // Генерация специальных кодов алфавита
-	size_t count = wcslen(alphabet);
-    int k = count;
+    int count = wcslen(alphabet);
+    if (count == 0) throw wstring(L"Ошибка кодировщика: задан пустой алфавит"); 
+    
     int p = 0; // Примерная длинна кодовых сообщений
+    if (count == 1) p = 1;
+    
+    int k = count;
     int accum = 1;
+    
     while (k != 1){
         k = k / 2;
         p++;
@@ -35,19 +41,21 @@ void HaffCoder::getCodes(){ // Генерация специальных код�
     int q = count - accum; // Разница между истинным количеством символов и ближайшей степенью двойки
     
     codes = vector<wstring>(count); // Создание массива специальных кодов
-	wchar_t *bitstr = new wchar_t[p+2]; // Выделение памяти под код одного символа
 	for (int i = 1; i <= count; i++){ // Цикл по всем символам алфавита
 		if (i >= 1 && i <= 2*q){
-            _itow(i - 1, bitstr, 2); // Преобразование номера символа в его двоичный код
-            codes[i - 1] = wstring(bitstr);
-            while (codes[i - 1].length() != p + 1) codes[i - 1] = L"0" + codes[i - 1]; // Дополнение двоичного кода до нужной длинны нулями
+		    bitset<32> bs(i - 1);
+            codes[i - 1] = [] (string str) {
+                return wstring(str.begin(), str.end());
+            }(bs.to_string());
+            codes[i - 1] = codes[i - 1].substr(31 - p);
         } else {
-            _itow(i - q - 1, bitstr, 2); // Преобразование номера символа в его двоичный код
-            codes[i - 1] = wstring(bitstr);
-            while (codes[i - 1].length() != p) codes[i - 1] = L"0" + codes[i - 1]; // Дополнение двоичного кода до нужной длинны нулями
+            bitset<32> bs(i - q - 1);
+            codes[i - 1] = [] (string str) {
+                return wstring(str.begin(), str.end());
+            }(bs.to_string());
+            codes[i - 1] = codes[i - 1].substr(32 - p);
         }
 	}
-    delete bitstr;
 }
 
 void HaffCoder::checkTree(){ // Проверка дерева Хаффмана на упорядоченность
@@ -91,7 +99,7 @@ void HaffCoder::checkTree(){ // Проверка дерева Хаффмана �
 }
 
 wstring HaffCoder::encode(wchar_t character){ // Функция кодирования символа
-    interdata << "---------------------------------\n";
+    interdata << L"---------------------------------\n";
     interdata << L"На вход кодировщику поступает символ '" << character << L"'\n";
     const wchar_t *charPtr = wcschr(alphabet, character); // Проверка наличия символа в алфавите
     if (!charPtr) throw wstring(L"Ошибка кодировщика: Символ: '") + character + wstring(L"' не распознан кодировщиком (не принадлежит его алфавиту)\n");
@@ -125,7 +133,7 @@ wstring HaffCoder::encode(wchar_t character){ // Функция кодирова
     totalCodeLength += result.length();
     symbolFrequency[charPtr - alphabet]++;
     if (result.length() >= maxSymbolCode) maxSymbolCode = result.length();
-    if (result.length() <= minSymbolCode) minSymbolCode = result.length();
+    if (processedSymbolCount <= 1 || result.length() <= minSymbolCode) minSymbolCode = result.length();
 
     interdata << L"\nРезультат кодирования символа '" << character << L"' - " << result << L"\n";
     interdata << printState();
@@ -160,7 +168,7 @@ wstring HaffCoder::decode(wstring bitMessage){ // Функция декодир�
             i++;
         }
         interdata << L"Следующий набор бит: " << curElem->getCode() << L" привел декодера к узлу с символом '";
-        if (*curElem->symbol == '\0'){ // Если встретился особый узел
+        if (*curElem->symbol == L'\0'){ // Если встретился особый узел
             interdata << L"\\0' - пустым символом =>\n=> по следующим битам нераскодированной части сообщения определяется символ из специальной кодировки\n";
             interdata << L"\nОставшееся нераскодированное сообщение: " << bitMessage.substr(i) << L"\n";
             curElem = specTree;
@@ -187,13 +195,13 @@ wstring HaffCoder::decode(wstring bitMessage){ // Функция декодир�
         totalCodeLength = i;
         symbolFrequency[curElem->symbol - alphabet]++;
         if (i - i_prev >= maxSymbolCode) maxSymbolCode = i - i_prev;
-        if (i - i_prev <= minSymbolCode) minSymbolCode = i - i_prev;
+        if (processedSymbolCount <= 1 || i - i_prev <= minSymbolCode) minSymbolCode = i - i_prev;
 
         interdata << L"\nПроизводится пересчет всех весов и перевешивание дерева в случае необходимости:\n";
         interdata << L"Дерево ";
         checkTree(); // Проверка дерева на упорядоченность
 
-        interdata << L"\nТекущий результат декодирования сообщения: '" << result << "'\n";
+        interdata << L"\nТекущий результат декодирования сообщения: '" << result << L"'\n";
         interdata << printState();
         interdata << L"---------------------------------\n";
     }
@@ -205,6 +213,6 @@ wstring HaffCoder::decode(wstring bitMessage){ // Функция декодир�
 
 wstring HaffCoder::printState() const {
     wchar_t buf[100];
-    swprintf(buf, L"Текущий процент сжатия: %.2f %\n", (1 - (float)totalCodeLength / (float)(processedSymbolCount * 8)) * 100);
+    swprintf(buf, 100, L"Текущий процент сжатия: %.2f %\n", (1 - (float)totalCodeLength / (float)(processedSymbolCount * 8)) * 100);
     return wstring(buf);
 }
