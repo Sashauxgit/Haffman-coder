@@ -4,6 +4,8 @@
 #include <vector>
 #include <algorithm>
 
+//#define __linux__h
+
 #ifndef __linux__ // Если не Linux
 #include <Windows.h> // windows
 #else
@@ -126,6 +128,7 @@ wstring charStr_to_wstring(const char *c_str) {
 int main(int argc, const char* argv[]){
 #ifndef __linux__ // Если не Linux
     // Для Windows
+    setlocale(LC_ALL, "");
     uint16_t prevCP = GetConsoleCP(); //Сохраняем текущую кодировку терминала
     SetConsoleCP(65001);              //Ставим нужную
     SetConsoleOutputCP(65001);        //нам кодировку UTF-8
