@@ -213,6 +213,6 @@ wstring HaffCoder::decode(wstring bitMessage){ // Функция декодир�
 
 wstring HaffCoder::printState() const {
     wchar_t buf[100];
-    swprintf(buf, 100, L"Текущий процент сжатия: %.2f %\n", (1 - (float)totalCodeLength / (float)(processedSymbolCount * 8)) * 100);
+    swprintf(buf, 100, L"Текущий процент сжатия: %.2f %\n", (1 - (float)totalCodeLength / (float)(processedSymbolCount * 16)) * 100);
     return wstring(buf);
 }

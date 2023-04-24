@@ -4,11 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-//#define __linux__h
-
-#ifndef __linux__ // Если не Linux
-#include <Windows.h> // windows
-#else
+#ifdef __linux__ // Если Linux
 #include <clocale> // linux
 #endif
 
@@ -128,14 +124,12 @@ wstring charStr_to_wstring(const char *c_str) {
 int main(int argc, const char* argv[]){
 #ifndef __linux__ // Если не Linux
     // Для Windows
-    setlocale(LC_ALL, "");
-    uint16_t prevCP = GetConsoleCP(); //Сохраняем текущую кодировку терминала
-    SetConsoleCP(65001);              //Ставим нужную
-    SetConsoleOutputCP(65001);        //нам кодировку UTF-8
+    setlocale(LC_ALL, ""); // Устанавливаем программе кодировку по умолчанию для windows
 #else
     // Для Linux
     locale::global(locale("ru_RU.UTF-8"));  //Устанавливаем лоакль системы Linux
 #endif
+
     try {
         if (argc < 2) throw wstring(L"Отсутствует режим работы программы: 'encoder/decoder'");
 
@@ -196,12 +190,6 @@ int main(int argc, const char* argv[]){
         wcout << message << L"\nДля вызова инструкции работы с программой используйте команду: '";
         wcout << charStr_to_wstring(argv[0]) << L" -h' или '" << charStr_to_wstring(argv[0]) << L" --help'" << endl;
     } // Обработка исключения кодировщика и всей программы
-    
-#ifndef __linux__ // Если не Linux
-    // Для Windows
-    SetConsoleCP(prevCP);           //Возвращаем сохраненную
-    SetConsoleOutputCP(prevCP);     //кодировку терминала
-#endif
 
     return 0;
 }
